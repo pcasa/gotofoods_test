@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<restaurant id="24405" name="Lotz Sandbox" storename="Schlotzsky's" brand="schlotzskysdeli" telephone="16719692469" streetaddress="2200 E Palm Valley Blds" city="Round Rock" zip="78665" state="TX" country="US" latitude="30.519294" longitude="-97.6511235" taxrate="8.2500">
+  <hours>
+    <period type="pickup" day="Monday" endday="Monday" from="00:15" to="23:45" />
+    <period type="drivethru" day="Monday" endday="Monday" from="00:00" to="24:00" />
+  </hours>
+  <menu>
+    <categories>
+      <category id="100" name="Sandwiches" sortorder="0">
+        <products>
+          <product id="1001" chainproductid="501" name="Turkey Capri" description="turkey | bacon | mozzarella | banana peppers" cost="0.0000" basecalories="500" maxcalories="1580" isdisabled="false" caloriesseparator="-" sortorder="0">
+            <images>
+              <image groupname="mobile-app" url="https://example.test/turkey.jpg" />
+            </images>
+            <modifiers>
+              <optiongroup id="9001" chainid="777" description="Size" mandatory="true" sortorder="0">
+                <options>
+                  <option id="8001" chainid="601" name="Small" isdefault="false" cost="8.2900" adjustsparentcalories="true" basecalories="500" adjustsparentprice="false" sortorder="0">
+                    <modifiers>
+                      <optiongroup id="9002" chainid="778" description="Remove Ingredients:" mandatory="false" sortorder="0">
+                        <options>
+                          <option id="8002" chainid="602" name="No Turkey" cost="0.0000" sortorder="0">
+                            <metadata>
+                              <data key="ISREMOVALGROUP" value="true" />
+                            </metadata>
+                            <pricing><price>0.0000</price></pricing>
+                          </option>
+                          <option id="8003" chainid="603" name="No Eggs" cost="0.0000" sortorder="1">
+                            <metadata>
+                              <data key="ISREMOVALGROUP" value="true" />
+                            </metadata>
+                          </option>
+                          <option id="8004" chainid="604" name="No Chopped Roasted Vegatables" cost="0.0000" sortorder="2">
+                            <metadata>
+                              <data key="ISREMOVALGROUP" value="true" />
+                            </metadata>
+                          </option>
+                        </options>
+                      </optiongroup>
+                      <optiongroup id="9003" chainid="779" description="Add-ons" mandatory="false" sortorder="1">
+                        <options>
+                          <option id="8005" chainid="605" name="Avocado" cost="1.5000" sortorder="0">
+                            <modifiers>
+                              <optiongroup id="9004" chainid="780" description="Amount" mandatory="false" sortorder="0">
+                                <options>
+                                  <option id="8006" chainid="606" name="Extra" cost="0.7500" sortorder="0" />
+                                </options>
+                              </optiongroup>
+                            </modifiers>
+                          </option>
+                        </options>
+                      </optiongroup>
+                    </modifiers>
+                  </option>
+                  <option id="8007" chainid="607" name="Medium" isdefault="true" cost="9.2900" adjustsparentcalories="true" basecalories="750" sortorder="1" />
+                </options>
+              </optiongroup>
+            </modifiers>
+          </product>
+          <product id="1002" chainproductid="502" name="Plain Soup" description="A comforting classic." cost="4.5000" isdisabled="false" sortorder="1" />
+        </products>
+      </category>
+      <category id="101" name="Beverages" sortorder="1">
+        <products>
+          <product id="1003" chainproductid="503" name="Iced Tea" cost="2.0000" basecalories="0" isdisabled="false" sortorder="0" />
+        </products>
+      </category>
+    </categories>
+    <singleusecategories>
+      <category id="102" name="Utensils" sortorder="60">
+        <products>
+          <product id="1004" chainproductid="504" name="Cutlery Kit" cost="0.0000" isdisabled="false" sortorder="0" />
+        </products>
+      </category>
+    </singleusecategories>
+  </menu>
+</restaurant>

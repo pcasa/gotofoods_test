@@ -1,0 +1,31 @@
+[project]
+name = "menuapi"
+version = "0.1.0"
+description = "Menu API — reads Olo-style menu XML and serves GraphQL/REST (Test for Principal API)"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=5.1,<6",
+    "strawberry-graphql-django>=0.62",
+    "psycopg[binary]>=3.2",
+    "dj-database-url>=2.3",
+    "django-cors-headers>=4.4",
+    "gunicorn>=23",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-django>=4.9",
+    "ruff>=0.8",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+testpaths = ["tests"]
