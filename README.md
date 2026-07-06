@@ -222,7 +222,7 @@ uv sync                                  # Python pinned via .python-version / .
 uv run python manage.py migrate          # SQLite by default; set DATABASE_URL for Postgres
 uv run python manage.py ingest_menu 24405.xml
 uv run python manage.py runserver
-uv run pytest -q                         # 47 tests
+uv run pytest -q                         # fast suite; real-file smoke test: -m slow
 uv run ruff check .
 ```
 

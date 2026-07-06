@@ -10,6 +10,7 @@ from strawberry_django.optimizer import DjangoOptimizerExtension
 
 from apps.menu import models
 from apps.menu.graphql import types
+from core import observability
 from apps.menu.services.queries import MenuQueryService
 
 
@@ -132,8 +133,14 @@ schema = strawberry.Schema(
 # inputs) reads alphabetically. The sorted copy must carry over the attributes
 # strawberry attaches to its GraphQLSchema (e.g. the _strawberry_schema
 # back-reference used by strawberry-django at resolve time).
-_sorted = lexicographic_sort_schema(schema._schema)
-for _attr, _value in vars(schema._schema).items():
-    if not hasattr(_sorted, _attr):
-        setattr(_sorted, _attr, _value)
-schema._schema = _sorted
+#
+# This touches a private attribute, so it fails SOFT: sorted docs are cosmetic,
+# and a library upgrade must never take the API down with them.
+try:
+    _sorted = lexicographic_sort_schema(schema._schema)
+    for _attr, _value in vars(schema._schema).items():
+        if not hasattr(_sorted, _attr):
+            setattr(_sorted, _attr, _value)
+    schema._schema = _sorted
+except Exception as exc:  # pragma: no cover — defensive, see comment above
+    observability.warning("schema_sort_skipped", detail=str(exc))

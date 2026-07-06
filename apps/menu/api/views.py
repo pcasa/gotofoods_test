@@ -32,18 +32,14 @@ def trigger_ingest(request: HttpRequest) -> JsonResponse:
     """Re-run the idempotent menu ingest ("menu update" story for the demo).
 
     Unauthenticated by design for this exercise; in production this would sit
-    behind admin auth or be replaced by a feed-driven worker (DESIGN.md D5).
+    behind admin auth (DESIGN.md D5), and the ingest would run as an async
+    background worker — returning 202 immediately with either "skipped" or
+    the IngestRun ID so the caller can poll for progress.
     """
     xml_path = Path(settings.MENU_XML_PATH)
     if not xml_path.exists():
         observability.error("menu_ingest_source_missing", path=str(xml_path))
         return JsonResponse({"error": f"menu file not found: {xml_path}"}, status=500)
     force = request.GET.get("force", "").lower() == "true"
-    """In production this would be a async background worker ingesting the file
-    and updating the DB as needed.
-
-    We would then immediately return a 202 with either skipped or the Ingest ID of the 
-    process.
-    """
     result = MenuIngestService().ingest(xml_path, force=force)
     return JsonResponse(asdict(result))

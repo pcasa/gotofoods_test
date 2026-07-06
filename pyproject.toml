@@ -29,3 +29,5 @@ target-version = "py312"
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings"
 testpaths = ["tests"]
+markers = ["slow: full real-file tests; excluded locally, run explicitly in CI"]
+addopts = "-m 'not slow'"
