@@ -81,6 +81,9 @@ LOGGING = {
     },
 }
 
+# GraphiQL explorer at /graphql — on for demos, off in production.
+GRAPHIQL_ENABLED = os.environ.get("GRAPHIQL_ENABLED", "true").lower() == "true"
+
 # Menu XML consumed by `manage.py ingest_menu` at container start and by POST /internal/ingest.
 MENU_XML_PATH = os.environ.get("MENU_XML_PATH", str(BASE_DIR / "24405.xml"))
 

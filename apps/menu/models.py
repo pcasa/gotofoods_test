@@ -142,6 +142,28 @@ class Option(models.Model):
         return self.name
 
 
+class IngestRun(models.Model):
+    """Audit record per ingest attempt. The latest completed run's source_hash
+    is the skip-if-unchanged guard for container restarts."""
+
+    class Status(models.TextChoices):
+        COMPLETED = "completed"
+        SKIPPED = "skipped"
+        FAILED = "failed"
+
+    source = models.CharField(max_length=255)
+    source_hash = models.CharField(max_length=64, db_index=True)
+    status = models.CharField(max_length=16, choices=Status.choices)
+    detail = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-id"]
+
+    def __str__(self) -> str:
+        return f"{self.created_at:%Y-%m-%d %H:%M} {self.status} {self.source_hash[:12]}"
+
+
 class ProductIngredient(models.Model):
     class Source(models.TextChoices):
         DESCRIPTION = "description"

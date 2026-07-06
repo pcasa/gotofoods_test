@@ -7,6 +7,7 @@ from apps.menu.models import (
     Category,
     HoursPeriod,
     Ingredient,
+    IngestRun,
     Option,
     OptionGroup,
     Product,
@@ -51,8 +52,38 @@ def test_ingest_loads_expected_counts(ingested):
 
 def test_ingest_is_idempotent(ingested):
     first = _snapshot()
-    MenuIngestService().ingest(FIXTURE)
+    # force=True exercises the actual re-ingest path (not the skip guard).
+    result = MenuIngestService().ingest(FIXTURE, force=True)
+    assert result.skipped is False
     assert _snapshot() == first
+
+
+def test_unchanged_source_is_skipped(ingested):
+    first = _snapshot()
+    result = MenuIngestService().ingest(FIXTURE)
+    assert result.skipped is True
+    assert result.products == 4  # counts still reported from current data
+    assert _snapshot() == first
+    statuses = list(IngestRun.objects.order_by("id").values_list("status", flat=True))
+    assert statuses == ["completed", "skipped"]
+
+
+def test_changed_source_is_reingested(ingested, tmp_path):
+    changed = tmp_path / "menu_changed.xml"
+    changed.write_bytes(FIXTURE.read_bytes() + b"\n<!-- touched -->\n")
+    result = MenuIngestService().ingest(changed)
+    assert result.skipped is False
+    assert IngestRun.objects.filter(status=IngestRun.Status.COMPLETED).count() == 2
+
+
+def test_failed_ingest_records_run(db, tmp_path):
+    broken = tmp_path / "broken.xml"
+    broken.write_text('<restaurant id="1"><menu>')  # malformed
+    with pytest.raises(Exception):
+        MenuIngestService().ingest(broken)
+    run = IngestRun.objects.get()
+    assert run.status == IngestRun.Status.FAILED
+    assert run.detail["error"]
 
 
 def test_product_fields_and_ingredients(ingested):

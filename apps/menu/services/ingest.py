@@ -9,6 +9,7 @@ The full file is 17 MB — a single DOM parse is simpler than streaming and
 comfortably fits in memory.
 """
 
+import hashlib
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from decimal import Decimal
@@ -31,6 +32,7 @@ class IngestResult:
     option_groups: int
     options: int
     ingredients: int
+    skipped: bool = False
 
 
 def _text(value: str | None) -> str:
@@ -56,18 +58,62 @@ def _metadata(el: ET.Element) -> dict[str, str]:
 
 
 class MenuIngestService:
-    def ingest(self, xml_path: Path) -> IngestResult:
-        root = ET.parse(xml_path).getroot()
+    def ingest(self, xml_path: Path, force: bool = False) -> IngestResult:
+        source_hash = hashlib.sha256(xml_path.read_bytes()).hexdigest()
+        if not force and self._unchanged_since_last_run(source_hash):
+            counts = self._current_counts()
+            models.IngestRun.objects.create(
+                source=str(xml_path),
+                source_hash=source_hash,
+                status=models.IngestRun.Status.SKIPPED,
+                detail=counts,
+            )
+            observability.info(
+                "menu_ingest_skipped", source=str(xml_path), source_hash=source_hash[:12]
+            )
+            name = models.Restaurant.objects.values_list("name", flat=True).first() or ""
+            return IngestResult(restaurant=name, skipped=True, **counts)
+
         try:
+            root = ET.parse(xml_path).getroot()
             with transaction.atomic():
                 restaurant = self._upsert_restaurant(root)
                 self._replace_hours(restaurant, root)
                 totals = self._sync_menu(restaurant, root)
         except Exception as exc:
+            models.IngestRun.objects.create(
+                source=str(xml_path),
+                source_hash=source_hash,
+                status=models.IngestRun.Status.FAILED,
+                detail={"error": str(exc)},
+            )
             observability.error("menu_ingest_failed", exc=exc, source=str(xml_path))
             raise
+        models.IngestRun.objects.create(
+            source=str(xml_path),
+            source_hash=source_hash,
+            status=models.IngestRun.Status.COMPLETED,
+            detail=totals,
+        )
         observability.info("menu_ingest_completed", source=str(xml_path), **totals)
         return IngestResult(restaurant=restaurant.name, **totals)
+
+    @staticmethod
+    def _unchanged_since_last_run(source_hash: str) -> bool:
+        last = models.IngestRun.objects.filter(
+            status=models.IngestRun.Status.COMPLETED
+        ).first()  # Meta.ordering is -id
+        return last is not None and last.source_hash == source_hash
+
+    @staticmethod
+    def _current_counts() -> dict[str, int]:
+        return {
+            "categories": models.Category.objects.count(),
+            "products": models.Product.objects.count(),
+            "option_groups": models.OptionGroup.objects.count(),
+            "options": models.Option.objects.count(),
+            "ingredients": models.Ingredient.objects.count(),
+        }
 
     def _upsert_restaurant(self, root: ET.Element) -> models.Restaurant:
         attrs = root.attrib

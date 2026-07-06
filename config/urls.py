@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 from strawberry.django.views import GraphQLView
@@ -10,7 +11,10 @@ urlpatterns = [
     path("internal/ingest", trigger_ingest, name="trigger-ingest"),
     path(
         "graphql",
-        csrf_exempt(GraphQLView.as_view(schema=schema, graphql_ide="graphiql")),
+        csrf_exempt(GraphQLView.as_view(
+            schema=schema,
+            graphql_ide="graphiql" if settings.GRAPHIQL_ENABLED else None,
+        )),
         name="graphql",
     ),
 ]

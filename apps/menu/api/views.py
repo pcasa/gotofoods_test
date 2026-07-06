@@ -38,5 +38,12 @@ def trigger_ingest(request: HttpRequest) -> JsonResponse:
     if not xml_path.exists():
         observability.error("menu_ingest_source_missing", path=str(xml_path))
         return JsonResponse({"error": f"menu file not found: {xml_path}"}, status=500)
-    result = MenuIngestService().ingest(xml_path)
+    force = request.GET.get("force", "").lower() == "true"
+    """In production this would be a async background worker ingesting the file
+    and updating the DB as needed.
+
+    We would then immediately return a 202 with either skipped or the Ingest ID of the 
+    process.
+    """
+    result = MenuIngestService().ingest(xml_path, force=force)
     return JsonResponse(asdict(result))
